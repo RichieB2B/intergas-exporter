@@ -20,18 +20,18 @@ def read_intergas():
   try:
       ser.open()
   except Exception as e:
-      sys.exit("Fout bij het openen van %s.\n%s: %s".format(ser.name, type(e).__name__, str(e)))
+      sys.exit("Fout bij het openen van {}.\n{}: {}".format(ser.name, type(e).__name__, str(e)))
 
   unixtime_utc = time.time()
   try:
       ser.write(b'S?\r')
   except Exception as e:
-      sys.exit("Seriele poort %s kan niet geschreven worden.\n%s: %s".format(ser.name, type(e).__name__, str(e)))
+      sys.exit("Seriele poort {} kan niet geschreven worden.\n{}: {}".format(ser.name, type(e).__name__, str(e)))
 
   try:
       ig_raw = ser.read(32)
   except Exception as e:
-      sys.exit("Seriele poort %s kan niet gelezen worden.\n%s: %s".format(ser.name, type(e).__name__, str(e)))
+      sys.exit("Seriele poort {} kan niet gelezen worden.\n{}: {}".format(ser.name, type(e).__name__, str(e)))
 
   data = {};
   if len(ig_raw) == 32:
@@ -83,7 +83,7 @@ def read_intergas():
   try:
       ser.close()
   except Exception as e:
-      sys.exit("Fout blij sluiten van %s.\n%s: %s".format(ser.name, type(e).__name__, str(e)))
+      sys.exit("Fout blij sluiten van {}.\n{}: {}".format(ser.name, type(e).__name__, str(e)))
 
   return data
 
