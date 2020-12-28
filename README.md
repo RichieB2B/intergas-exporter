@@ -11,6 +11,8 @@ https://www.circuitsonline.net/forum/view/80667
 
 ## Example output
 
+![Image](examples/grafana-screenshot.png?raw=true)
+
 > $ curl -s http://localhost:8080  
 > &#35; HELP python_gc_objects_collected_total Objects collected during gc  
 > &#35; TYPE python_gc_objects_collected_total counter  
