@@ -2,12 +2,9 @@
 
 An Intergas boiler data exporter for prometheus
 
-Uses the python evohomeclient from:  
-https://pypi.org/project/evohomeclient/  
-https://github.com/watchforstock/evohome-client
-
 Inspired by the code samples posted on
 https://www.circuitsonline.net/forum/view/80667
+https://github.com/rickvanderzwet/IntergasBoilerReader
 
 ## Example output
 
