@@ -4,6 +4,7 @@ An Intergas boiler data exporter for prometheus
 
 Inspired by the code samples posted on
 https://www.circuitsonline.net/forum/view/80667
+and
 https://github.com/rickvanderzwet/IntergasBoilerReader
 
 ## Example output
