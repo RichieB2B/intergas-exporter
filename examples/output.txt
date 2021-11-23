@@ -10,7 +10,7 @@ python_gc_objects_uncollectable_total{generation="1"} 0.0
 python_gc_objects_uncollectable_total{generation="2"} 0.0
 # HELP python_gc_collections_total Number of times this generation was collected
 # TYPE python_gc_collections_total counter
-python_gc_collections_total{generation="0"} 38.0
+python_gc_collections_total{generation="0"} 39.0
 python_gc_collections_total{generation="1"} 3.0
 python_gc_collections_total{generation="2"} 0.0
 # HELP python_info Python platform information
@@ -18,32 +18,32 @@ python_gc_collections_total{generation="2"} 0.0
 python_info{implementation="CPython",major="3",minor="7",patchlevel="3",version="3.7.3"} 1.0
 # HELP process_virtual_memory_bytes Virtual memory size in bytes.
 # TYPE process_virtual_memory_bytes gauge
-process_virtual_memory_bytes 4.2020864e+07
+process_virtual_memory_bytes 4.2090496e+07
 # HELP process_resident_memory_bytes Resident memory size in bytes.
 # TYPE process_resident_memory_bytes gauge
-process_resident_memory_bytes 1.4733312e+07
+process_resident_memory_bytes 1.4594048e+07
 # HELP process_start_time_seconds Start time of the process since unix epoch in seconds.
 # TYPE process_start_time_seconds gauge
-process_start_time_seconds 1.63768551268e+09
+process_start_time_seconds 1.63768770212e+09
 # HELP process_cpu_seconds_total Total user and system CPU time spent in seconds.
 # TYPE process_cpu_seconds_total counter
-process_cpu_seconds_total 1.17
+process_cpu_seconds_total 1.09
 # HELP process_open_fds Number of open file descriptors.
 # TYPE process_open_fds gauge
-process_open_fds 6.0
+process_open_fds 11.0
 # HELP process_max_fds Maximum number of open file descriptors.
 # TYPE process_max_fds gauge
 process_max_fds 1024.0
 # HELP intergas_temperature_celcius Temperature in celsius
 # TYPE intergas_temperature_celcius gauge
-intergas_temperature_celcius{type="aanvoer"} 36.22
-intergas_temperature_celcius{type="flow"} 35.51
-intergas_temperature_celcius{type="retour"} 35.17
-intergas_temperature_celcius{type="warmwater"} 37.17
+intergas_temperature_celcius{type="aanvoer"} 32.2
+intergas_temperature_celcius{type="flow"} 32.36
+intergas_temperature_celcius{type="retour"} 32.43
+intergas_temperature_celcius{type="warmwater"} 28.61
 intergas_temperature_celcius{type="set"} 50.0
 # HELP intergas_water_pressure_bar Water pressure in bar
 # TYPE intergas_water_pressure_bar gauge
-intergas_water_pressure_bar 1.74
+intergas_water_pressure_bar 1.71
 # HELP intergas_display_code Display code
 # TYPE intergas_display_code gauge
 intergas_display_code 0.0
@@ -93,20 +93,53 @@ intergas_hours{type="dhw_function"} 246.0
 # HELP intergas_stats Statistics in number of times
 # TYPE intergas_stats gauge
 intergas_stats{type="power_disconnect"} 1046.0
-intergas_stats{type="burnerstarts"} 52410.0
+intergas_stats{type="burnerstarts"} 52412.0
 intergas_stats{type="ignition_failed"} 4.0
 intergas_stats{type="flame_lost"} 1.0
 intergas_stats{type="reset"} 3.0
 # HELP intergas_gasmeter Gas usage in m3
 # TYPE intergas_gasmeter gauge
-intergas_gasmeter{type="cv"} 5381.9522
+intergas_gasmeter{type="cv"} 5382.0979
 intergas_gasmeter{type="warmwater"} 519.1142
+# HELP intergas_parameter Setting parameter
+# TYPE intergas_parameter gauge
+intergas_parameter{type="heater_on"} 1.0
+intergas_parameter{type="comfort_mode"} 0.0
+intergas_parameter{type="ch_set_max"} 50.0
+intergas_parameter{type="dhw_set"} 50.0
+intergas_parameter{type="eco_days"} 3.0
+intergas_parameter{type="comfort_set"} 0.0
+intergas_parameter{type="dwh_at_night"} 0.0
+intergas_parameter{type="ch_at_night"} 0.0
+intergas_parameter{type="param_1"} 0.0
+intergas_parameter{type="param_2"} 0.0
+intergas_parameter{type="param_3"} 65.0
+intergas_parameter{type="param_4"} 75.0
+intergas_parameter{type="param_5"} 25.0
+intergas_parameter{type="param_6"} -7.0
+intergas_parameter{type="param_7"} 25.0
+intergas_parameter{type="param_8"} 5.0
+intergas_parameter{type="param_9"} 1.0
+intergas_parameter{type="param_A"} 0.0
+intergas_parameter{type="param_b"} 0.0
+intergas_parameter{type="param_C"} 1.0
+intergas_parameter{type="param_c"} 20.0
+intergas_parameter{type="param_d"} 20.0
+intergas_parameter{type="param_E"} 25.0
+intergas_parameter{type="param_E."} 1.0
+intergas_parameter{type="param_F"} 35.0
+intergas_parameter{type="param_H"} 67.0
+intergas_parameter{type="param_n"} 60.0
+intergas_parameter{type="param_o"} 0.0
+intergas_parameter{type="param_P"} 10.0
+intergas_parameter{type="param_r"} 0.0
+intergas_parameter{type="param_F."} 40.0
 # HELP intergas_tapflow Warm water tap flow
 # TYPE intergas_tapflow gauge
 intergas_tapflow 0.0
 # HELP intergas_updated Intergas client last updated
 # TYPE intergas_updated gauge
-intergas_updated 1.6376855540108228e+09
+intergas_updated 1.6376877208628285e+09
 # HELP intergas_up Intergas client status
 # TYPE intergas_up gauge
 intergas_up 1.0

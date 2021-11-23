@@ -10,6 +10,13 @@ def Get_int32(bytelist):
     value = bytelist[3] * 16777216 + bytelist[2] * 65536 + bytelist[1] * 256 + bytelist[0]
     return value
 
+def Getsigned(lsb):
+    if lsb > 127:
+        value = -int((lsb ^ 255) + 1)
+    else:
+        value = lsb
+    return value
+
 def Getfloat(lsb, msb):
   if msb > 127:
     value = -(float((msb ^ 255) + 1) * 256 - lsb) / 100
@@ -149,6 +156,45 @@ def read_hours(ser):
 
   return data
 
+def read_params(ser):
+  ig_raw = read_raw(ser, b'V?\r')
+
+  data = {};
+  if len(ig_raw) == 32:
+      data['heater_on']    = Getsigned(ig_raw[0])
+      data['comfort_mode'] = Getsigned(ig_raw[1])
+      data['ch_set_max']   = Getsigned(ig_raw[2])
+      data['dhw_set']      = Getsigned(ig_raw[3])
+      data['eco_days']     = Getsigned(ig_raw[4])
+      data['comfort_set']  = Getsigned(ig_raw[5])
+      data['dwh_at_night'] = Getsigned(ig_raw[6])
+      data['ch_at_night']  = Getsigned(ig_raw[7])
+      data['param_1']      = Getsigned(ig_raw[8])
+      data['param_2']      = Getsigned(ig_raw[9])
+      data['param_3']      = Getsigned(ig_raw[10])
+      data['param_4']      = Getsigned(ig_raw[11])
+      data['param_5']      = Getsigned(ig_raw[12])
+      data['param_6']      = Getsigned(ig_raw[13])
+      data['param_7']      = Getsigned(ig_raw[14])
+      data['param_8']      = Getsigned(ig_raw[15])
+      data['param_9']      = Getsigned(ig_raw[16])
+      data['param_A']      = Getsigned(ig_raw[17])
+      data['param_b']      = Getsigned(ig_raw[18])
+      data['param_C']      = Getsigned(ig_raw[19])
+      data['param_c']      = Getsigned(ig_raw[20])
+      data['param_d']      = Getsigned(ig_raw[21])
+      data['param_E']      = Getsigned(ig_raw[22])
+      data['param_E.']     = Getsigned(ig_raw[23])
+      data['param_F']      = Getsigned(ig_raw[24])
+      data['param_H']      = Getsigned(ig_raw[25])
+      data['param_n']      = Getsigned(ig_raw[26])
+      data['param_o']      = Getsigned(ig_raw[27])
+      data['param_P']      = Getsigned(ig_raw[28])
+      data['param_r']      = Getsigned(ig_raw[29])
+      data['param_F.']     = Getsigned(ig_raw[30])
+
+  return data
+
 def read_intergas():
   # Set COM port config
   ser = serial.Serial()
@@ -170,6 +216,8 @@ def read_intergas():
   data.update(read_crc(ser))
   data.update(read_hours(ser))
 
+  params = read_params(ser)
+
   if data:
     data['timestamp']  = unixtime_utc
 
@@ -179,7 +227,7 @@ def read_intergas():
   except Exception as e:
       sys.exit("Fout blij sluiten van {}.\n{}: {}".format(ser.name, type(e).__name__, str(e)))
 
-  return data
+  return data, params
 
 if __name__ == '__main__':
   temp        = prom.Gauge('intergas_temperature_celcius'           , 'Temperature in celsius', ['type'])
@@ -195,13 +243,14 @@ if __name__ == '__main__':
   hours       = prom.Gauge('intergas_hours'                         , 'Duration in hours', ['type'])
   stats       = prom.Gauge('intergas_stats'                         , 'Statistics in number of times', ['type'])
   gasmeter    = prom.Gauge('intergas_gasmeter'                      , 'Gas usage in m3', ['type'])
+  parameter   = prom.Gauge('intergas_parameter'                     , 'Setting parameter', ['type'])
   tapflow     = prom.Gauge('intergas_tapflow'                       , 'Warm water tap flow')
   updated     = prom.Gauge('intergas_updated'                       , 'Intergas client last updated')
   up          = prom.Gauge('intergas_up'                            , 'Intergas client status')
   prom.start_http_server(8080)
 
   while True:
-    ig=read_intergas()
+    ig, params = read_intergas()
     if ig:
       up.set(1)
       updated.set(ig['timestamp'])
@@ -250,5 +299,8 @@ if __name__ == '__main__':
       flag.labels('grad_flag').set(ig['grad_flag'])
     else:
       up.set(0)
+
+    for k,v in params.items():
+      parameter.labels(k).set(v)
 
     time.sleep(5)
