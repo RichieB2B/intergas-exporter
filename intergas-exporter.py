@@ -153,6 +153,8 @@ def read_hours(ser):
       data['reset']                 = Get_int(ig_raw[14], ig_raw[15])
       data['gasmeter_cv']           = Get_int32(ig_raw[16:20]) / float(10000)
       data['gasmeter_dhw']          = Get_int32(ig_raw[20:24]) / float(10000)
+      data['watermeter']            = Get_int32(ig_raw[24:26] + ig_raw[28].to_bytes(2,'little')) / float(10000)
+      data['burnerstarts_dhw']      = Get_int32(ig_raw[26:28] + ig_raw[29].to_bytes(2,'little'))
 
   return data
 
@@ -167,7 +169,7 @@ def read_params(ser):
       data['dhw_set']      = Getsigned(ig_raw[3])
       data['eco_days']     = Getsigned(ig_raw[4])
       data['comfort_set']  = Getsigned(ig_raw[5])
-      data['dwh_at_night'] = Getsigned(ig_raw[6])
+      data['dhw_at_night'] = Getsigned(ig_raw[6])
       data['ch_at_night']  = Getsigned(ig_raw[7])
       data['param_1']      = Getsigned(ig_raw[8])
       data['param_2']      = Getsigned(ig_raw[9])
@@ -243,6 +245,7 @@ if __name__ == '__main__':
   hours       = prom.Gauge('intergas_hours'                         , 'Duration in hours', ['type'])
   stats       = prom.Gauge('intergas_stats'                         , 'Statistics in number of times', ['type'])
   gasmeter    = prom.Gauge('intergas_gasmeter'                      , 'Gas usage in m3', ['type'])
+  watermeter  = prom.Gauge('intergas_watermeter'                    , 'Hot water usage in m3')
   parameter   = prom.Gauge('intergas_parameter'                     , 'Setting parameter', ['type'])
   tapflow     = prom.Gauge('intergas_tapflow'                       , 'Warm water tap flow')
   updated     = prom.Gauge('intergas_updated'                       , 'Intergas client last updated')
@@ -274,11 +277,13 @@ if __name__ == '__main__':
       hours.labels('dhw_function').set(ig['dhw_function'])
       stats.labels('power_disconnect').set(ig['line_power_disconnect'])
       stats.labels('burnerstarts').set(ig['burnerstarts'])
+      stats.labels('burnerstarts_dhw').set(ig['burnerstarts_dhw'])
       stats.labels('ignition_failed').set(ig['ignition_failed'])
       stats.labels('flame_lost').set(ig['flame_lost'])
       stats.labels('reset').set(ig['reset'])
       gasmeter.labels('cv').set(ig['gasmeter_cv'])
       gasmeter.labels('warmwater').set(ig['gasmeter_dhw'])
+      watermeter.set(ig['watermeter'])
       tapflow.set(ig['tapflow'])
 
       flag.labels('gp_switch').set(ig['gp_switch'])
