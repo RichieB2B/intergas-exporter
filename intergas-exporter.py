@@ -6,6 +6,10 @@ def Get_int(lsb, msb):
     value = int(msb * 256 + lsb)
     return value
 
+def Get_int32(bytelist):
+    value = bytelist[3] * 16777216 + bytelist[2] * 65536 + bytelist[1] * 256 + bytelist[0]
+    return value
+
 def Getfloat(lsb, msb):
   if msb > 127:
     value = -(float((msb ^ 255) + 1) * 256 - lsb) / 100
@@ -108,6 +112,24 @@ def read_crc(ser):
 
   return data
 
+def read_hours(ser):
+  ig_raw = read_raw(ser, b'HN\r')
+
+  data = {};
+  if len(ig_raw) == 32:
+      data['line_power_connected']  = Get_int(ig_raw[0], ig_raw[1]) + ig_raw[30] * 65536
+      data['line_power_disconnect'] = Get_int(ig_raw[2], ig_raw[3])
+      data['ch_function']           = Get_int(ig_raw[4], ig_raw[5])
+      data['dhw_function']          = Get_int(ig_raw[6], ig_raw[7])
+      data['burnerstarts']          = Get_int(ig_raw[8], ig_raw[9]) + ig_raw[31] * 65536
+      data['ignition_failed']       = Get_int(ig_raw[10], ig_raw[11])
+      data['flame_lost']            = Get_int(ig_raw[12], ig_raw[13])
+      data['reset']                 = Get_int(ig_raw[14], ig_raw[15])
+      data['gasmeter_cv']           = Get_int32(ig_raw[16:20]) / float(10000)
+      data['gasmeter_dhw']          = Get_int32(ig_raw[20:24]) / float(10000)
+
+  return data
+
 def read_intergas():
   # Set COM port config
   ser = serial.Serial()
@@ -126,6 +148,7 @@ def read_intergas():
   data = {}
   data.update(read_status(ser))
   data.update(read_crc(ser))
+  data.update(read_hours(ser))
 
   if data:
     data['timestamp']  = unixtime_utc
@@ -148,6 +171,9 @@ if __name__ == '__main__':
   io_curr     = prom.Gauge('intergas_ionization_current_microampere', 'Ionization current in µA')
   int_time    = prom.Gauge('intergas_interrupt_time'                , 'Interupt time')
   load        = prom.Gauge('intergas_load'                          , 'Load %', ['type'])
+  hours       = prom.Gauge('intergas_hours'                         , 'Duration in hours', ['type'])
+  stats       = prom.Gauge('intergas_stats'                         , 'Statistics in number of times', ['type'])
+  gasmeter    = prom.Gauge('intergas_gasmeter'                      , 'Gas usage in m3', ['type'])
   updated     = prom.Gauge('intergas_updated'                       , 'Intergas client last updated')
   up          = prom.Gauge('intergas_up'                            , 'Intergas client status')
   prom.start_http_server(8080)
@@ -171,6 +197,16 @@ if __name__ == '__main__':
       int_time.set(ig['interrupt_time'])
       load.labels('interrupt').set(ig['interrupt_load'])
       load.labels('main').set(ig['main_load'])
+      hours.labels('line_power').set(ig['line_power_connected'])
+      hours.labels('ch_function').set(ig['ch_function'])
+      hours.labels('dhw_function').set(ig['dhw_function'])
+      stats.labels('power_disconnect').set(ig['line_power_disconnect'])
+      stats.labels('burnerstarts').set(ig['burnerstarts'])
+      stats.labels('ignition_failed').set(ig['ignition_failed'])
+      stats.labels('flame_lost').set(ig['flame_lost'])
+      stats.labels('reset').set(ig['reset'])
+      gasmeter.labels('cv').set(ig['gasmeter_cv'])
+      gasmeter.labels('warmwater').set(ig['gasmeter_dhw'])
 
       flag.labels('gp_switch').set(ig['gp_switch'])
       flag.labels('tap_switch').set(ig['tap_switch'])
