@@ -2,6 +2,10 @@
 import sys, serial, time
 import prometheus_client as prom
 
+def Get_int(lsb, msb):
+    value = int(msb * 256 + lsb)
+    return value
+
 def Getfloat(lsb, msb):
   if msb > 127:
     value = -(float((msb ^ 255) + 1) * 256 - lsb) / 100
@@ -9,33 +13,37 @@ def Getfloat(lsb, msb):
     value = float(msb * 256 + lsb) / 100
   return value
 
-def read_intergas():
-  # Set COM port config
-  ser = serial.Serial()
-  ser.baudrate = 9600
-  ser.timeout=10
-  ser.port="/dev/ttyUSB0"
+def Get_CRC(byte1, byte2, byte3, byte4):
+    hexstr1 = hex(byte1)[2:]
+    hexstr2 = hex(byte2)[2:]
+    hexstr3 = hex(byte3)[2:]
+    hexstr4 = hex(byte4)[2:]
+    hexstr_list = [
+     hexstr1, hexstr2, hexstr3, hexstr4]
+    crc = ''
+    for string in hexstr_list:
+        if len(string) == 1:
+            string = '0' + string
+        crc = crc + string
+    return crc
 
-  # Open COM port
+def read_raw(ser, command):
   try:
-      ser.open()
-  except Exception as e:
-      sys.exit("Fout bij het openen van {}.\n{}: {}".format(ser.name, type(e).__name__, str(e)))
-
-  unixtime_utc = time.time()
-  try:
-      ser.write(b'S?\r')
+      ser.write(command)
   except Exception as e:
       sys.exit("Seriele poort {} kan niet geschreven worden.\n{}: {}".format(ser.name, type(e).__name__, str(e)))
 
   try:
-      ig_raw = ser.read(32)
+      raw = ser.read(32)
   except Exception as e:
       sys.exit("Seriele poort {} kan niet gelezen worden.\n{}: {}".format(ser.name, type(e).__name__, str(e)))
 
+  return raw
+
+def read_status(ser):
+  ig_raw = read_raw(ser, b'S?\r')
   data = {};
   if len(ig_raw) == 32:
-    data['timestamp']          = unixtime_utc
     data['t_aanvoer']          = Getfloat(ig_raw[0] , ig_raw[1])
     data['t_flow']             = Getfloat(ig_raw[2] , ig_raw[3])
     data['t_retour']           = Getfloat(ig_raw[4] , ig_raw[5])
@@ -79,6 +87,49 @@ def read_intergas():
     # 204: "Tapwater nadraaien",
     # 231: "CV nadraaien",
 
+    return data
+
+def read_crc(ser):
+  ig_raw = read_raw(ser, b'CRC')
+
+  data = {};
+  if len(ig_raw) == 32:
+      data['interrupt_time']    = Get_int(ig_raw[0], ig_raw[1]) / float(5)
+      data['interrupt_load']    = Get_int(ig_raw[2], ig_raw[3]) / 6.25
+      data['main_load']         = Get_int(ig_raw[4], ig_raw[5]) / float(8)
+      freq_number               = Get_int(ig_raw[6], ig_raw[7])
+      if freq_number > 0:
+          data['net_frequency'] = float(2000) / freq_number
+      else:
+          data['net_frequency'] = 0
+      data['voltage_reference'] = Get_int(ig_raw[8], ig_raw[9]) * 5 / float(1024)
+      data['checksum1']         = Get_CRC(ig_raw[24], ig_raw[25], ig_raw[26], ig_raw[27])
+      data['checksum2']         = Get_CRC(ig_raw[28], ig_raw[29], ig_raw[30], ig_raw[31])
+
+  return data
+
+def read_intergas():
+  # Set COM port config
+  ser = serial.Serial()
+  ser.baudrate = 9600
+  ser.timeout=10
+  ser.port="/dev/ttyUSB0"
+
+  # Open COM port
+  try:
+      ser.open()
+  except Exception as e:
+      sys.exit("Fout bij het openen van {}.\n{}: {}".format(ser.name, type(e).__name__, str(e)))
+
+  unixtime_utc = time.time()
+
+  data = {}
+  data.update(read_status(ser))
+  data.update(read_crc(ser))
+
+  if data:
+    data['timestamp']  = unixtime_utc
+
   # Close port and show status
   try:
       ser.close()
@@ -95,6 +146,8 @@ if __name__ == '__main__':
   f_pwm       = prom.Gauge('intergas_fan_pwm'                       , 'Fan PWM duty cycle percentage')
   flag        = prom.Gauge('intergas_flag'                          , 'Boolean flags', ['name'])
   io_curr     = prom.Gauge('intergas_ionization_current_microampere', 'Ionization current in µA')
+  int_time    = prom.Gauge('intergas_interrupt_time'                , 'Interupt time')
+  load        = prom.Gauge('intergas_load'                          , 'Load %', ['type'])
   updated     = prom.Gauge('intergas_updated'                       , 'Intergas client last updated')
   up          = prom.Gauge('intergas_up'                            , 'Intergas client status')
   prom.start_http_server(8080)
@@ -115,6 +168,9 @@ if __name__ == '__main__':
       f_speed.labels('measured').set(ig['fanspeed'])
       f_pwm.set(ig['fan_pwm'])
       io_curr.set(ig['io_curr'])
+      int_time.set(ig['interrupt_time'])
+      load.labels('interrupt').set(ig['interrupt_load'])
+      load.labels('main').set(ig['main_load'])
 
       flag.labels('gp_switch').set(ig['gp_switch'])
       flag.labels('tap_switch').set(ig['tap_switch'])
