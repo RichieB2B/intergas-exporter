@@ -104,7 +104,7 @@ def read_status_extra(ser):
   ig_raw = read_raw(ser, b'S2\r')
   data = {};
   if len(ig_raw) == 32:
-    data['tapflow']               = Getfloat(ig_raw[0], ig_raw[0])
+    data['tapflow']               = Getfloat(ig_raw[0], ig_raw[1])
     data['pump_pwm']              = (200 - ig_raw[2]) / 2.0
     data['room_override_zone1']   = Getfloat(ig_raw[4], ig_raw[5])
     data['room_set_zone1']        = Getfloat(ig_raw[6], ig_raw[7])
