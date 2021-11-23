@@ -93,6 +93,25 @@ def read_status(ser):
 
     return data
 
+def read_status_extra(ser):
+  ig_raw = read_raw(ser, b'S2\r')
+  data = {};
+  if len(ig_raw) == 32:
+    data['tapflow']               = Getfloat(ig_raw[0], ig_raw[0])
+    data['pump_pwm']              = (200 - ig_raw[2]) / 2.0
+    data['room_override_zone1']   = Getfloat(ig_raw[4], ig_raw[5])
+    data['room_set_zone1']        = Getfloat(ig_raw[6], ig_raw[7])
+    data['room_temp_zone1']       = Getfloat(ig_raw[8], ig_raw[9])
+    data['room_override_zone2']   = Getfloat(ig_raw[10], ig_raw[11])
+    data['room_set_zone2']        = Getfloat(ig_raw[12], ig_raw[13])
+    data['room_temp_zone2']       = Getfloat(ig_raw[14], ig_raw[15])
+    data['override_outside_temp'] = Getfloat(ig_raw[16], ig_raw[17])
+    data['OT_master_member_id']   = ig_raw[3]
+    data['OT_therm_prod_version'] = ig_raw[18]
+    data['OT_therm_prod_type']    = ig_raw[19]
+
+  return data
+
 def read_crc(ser):
   ig_raw = read_raw(ser, b'CRC')
 
@@ -147,6 +166,7 @@ def read_intergas():
 
   data = {}
   data.update(read_status(ser))
+  data.update(read_status_extra(ser))
   data.update(read_crc(ser))
   data.update(read_hours(ser))
 
@@ -167,6 +187,7 @@ if __name__ == '__main__':
   dispcode    = prom.Gauge('intergas_display_code'                  , 'Display code')
   f_speed     = prom.Gauge('intergas_fanspeed_rpm'                  , 'Fan speed in rpm', ['type'])
   f_pwm       = prom.Gauge('intergas_fan_pwm'                       , 'Fan PWM duty cycle percentage')
+  p_pwm       = prom.Gauge('intergas_pump_pwm'                      , 'Pump PWM duty cycle percentage')
   flag        = prom.Gauge('intergas_flag'                          , 'Boolean flags', ['name'])
   io_curr     = prom.Gauge('intergas_ionization_current_microampere', 'Ionization current in µA')
   int_time    = prom.Gauge('intergas_interrupt_time'                , 'Interupt time')
@@ -174,6 +195,7 @@ if __name__ == '__main__':
   hours       = prom.Gauge('intergas_hours'                         , 'Duration in hours', ['type'])
   stats       = prom.Gauge('intergas_stats'                         , 'Statistics in number of times', ['type'])
   gasmeter    = prom.Gauge('intergas_gasmeter'                      , 'Gas usage in m3', ['type'])
+  tapflow     = prom.Gauge('intergas_tapflow'                       , 'Warm water tap flow')
   updated     = prom.Gauge('intergas_updated'                       , 'Intergas client last updated')
   up          = prom.Gauge('intergas_up'                            , 'Intergas client status')
   prom.start_http_server(8080)
@@ -193,6 +215,7 @@ if __name__ == '__main__':
       f_speed.labels('set').set(ig['fanspeed_set'])
       f_speed.labels('measured').set(ig['fanspeed'])
       f_pwm.set(ig['fan_pwm'])
+      p_pwm.set(ig['pump_pwm'])
       io_curr.set(ig['io_curr'])
       int_time.set(ig['interrupt_time'])
       load.labels('interrupt').set(ig['interrupt_load'])
@@ -207,6 +230,7 @@ if __name__ == '__main__':
       stats.labels('reset').set(ig['reset'])
       gasmeter.labels('cv').set(ig['gasmeter_cv'])
       gasmeter.labels('warmwater').set(ig['gasmeter_dhw'])
+      tapflow.set(ig['tapflow'])
 
       flag.labels('gp_switch').set(ig['gp_switch'])
       flag.labels('tap_switch').set(ig['tap_switch'])
