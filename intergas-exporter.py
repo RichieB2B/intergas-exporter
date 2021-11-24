@@ -219,7 +219,7 @@ def read_intergas():
   temp.append(read_hours(ser))
 
   data = {}
-  if all(t for t in temp):
+  if all(temp):
      data['timestamp'] = unixtime_utc
      for t in temp:
          data.update(t)
