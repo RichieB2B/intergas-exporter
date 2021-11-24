@@ -212,16 +212,19 @@ def read_intergas():
 
   unixtime_utc = time.time()
 
+  temp = []
+  temp.append(read_status(ser))
+  temp.append(read_status_extra(ser))
+  temp.append(read_crc(ser))
+  temp.append(read_hours(ser))
+
   data = {}
-  data.update(read_status(ser))
-  data.update(read_status_extra(ser))
-  data.update(read_crc(ser))
-  data.update(read_hours(ser))
+  if all(t for t in temp):
+     data['timestamp']  = unixtime_utc
+     for t in temp:
+         data.update(t)
 
   params = read_params(ser)
-
-  if data:
-    data['timestamp']  = unixtime_utc
 
   # Close port and show status
   try:
