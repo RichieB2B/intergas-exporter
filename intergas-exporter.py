@@ -98,7 +98,7 @@ def read_status(ser):
     # 204: "Tapwater nadraaien",
     # 231: "CV nadraaien",
 
-    return data
+  return data
 
 def read_status_extra(ser):
   ig_raw = read_raw(ser, b'S2\r')
