@@ -220,7 +220,7 @@ def read_intergas():
 
   data = {}
   if all(t for t in temp):
-     data['timestamp']  = unixtime_utc
+     data['timestamp'] = unixtime_utc
      for t in temp:
          data.update(t)
 
