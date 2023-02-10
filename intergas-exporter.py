@@ -202,7 +202,7 @@ def read_intergas():
   ser = serial.Serial()
   ser.baudrate = 9600
   ser.timeout=10
-  ser.port="/dev/ttyUSB0"
+  ser.port="/dev/ttyUSB-PL2303"
 
   # Open COM port
   try:
