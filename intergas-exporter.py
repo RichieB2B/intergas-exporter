@@ -251,8 +251,8 @@ if __name__ == '__main__':
   watermeter  = prom.Gauge('intergas_watermeter'                    , 'Hot water usage in m3')
   parameter   = prom.Gauge('intergas_parameter'                     , 'Setting parameter', ['type'])
   tapflow     = prom.Gauge('intergas_tapflow'                       , 'Warm water tap flow')
-  updated     = prom.Gauge('intergas_updated'                       , 'Intergas client last updated')
-  up          = prom.Gauge('intergas_up'                            , 'Intergas client status')
+  updated     = prom.Gauge('updated'                                , 'Client data last updated')
+  up          = prom.Gauge('up'                                     , 'Client status')
   prom.start_http_server(8080)
 
   while True:
